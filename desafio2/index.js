@@ -55,7 +55,7 @@ class ProductManager{
         try {
             //Productos del archivo products.json
             const productsList = await fs.readFile(this.path);
-            //console.log("productos del json", JSON.parse(productsList));
+            console.log("productos del json", JSON.parse(productsList));
             return JSON.parse(productsList);
         } catch (error) {
             console.log(error);
@@ -63,31 +63,51 @@ class ProductManager{
     };
     //Metodo Update para actualizar el producto
     updateProduct = async(id, data) =>{
-        //Productos del archivo utilizando el metodo getProductById
+        try {
+            //Productos del archivo utilizando el metodo getProductById
         let upProduct = await this.getProductById(id);
         let prodIndex = this.products.findIndex(prod => prod.id === id);
         this.products[prodIndex] = {...upProduct, ...data};
         //Escritura del producto actualizado
         await fs.writeFile(this.path, JSON.stringify(this.products));
         return "Product update Succefully";
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
     };
 
 
     //Metodo getProductById para obtener los productos por su id
     getProductById = async (id)=>{
-        this.products = JSON.parse(await fs.readFile(this.path, 'utf-8'));
-        let resultado = this.products.find(product => product.id === id);
-        if(resultado === undefined){
-            return " Product Not found";
-        }else{
-            return resultado;
-        };
+        try {
+            this.products = JSON.parse(await fs.readFile(this.path, 'utf-8'));
+            let resultado = this.products.find(product => product.id === id);
+            if(resultado === undefined){
+                return " Product Not found";
+            }else{
+                return resultado;
+            };
+        } catch (error) {
+            console.log(error);
+            return error;
+        }
+        
     };
 
     deleteProduct = async (id)=>{
-        let productToEliminate = await this.getProductById(id);
-        await fs.unlink(this.path, productToEliminate);
-        return "Porduct Delete";
+        try {
+            if(!id){
+                throw new Error('Missing Id');
+            }
+        const products = await this.getProducts();
+        const filteredProducts = products.filter(product => product.id !== id);
+        fs.writeFile(this.path, JSON.stringify(filteredProducts), 'utf-8');
+        console.log('Product Delete');
+        } catch (error) {
+            console.log(error);
+            return error
+        }
     };
 };
 
@@ -107,40 +127,16 @@ adminProductos.addProduct(product2);
 adminProductos.addProduct(product3);
 
 //Imprimo por consola todos los productos
-adminProductos.getProducts()
-    .then((response)=>{
-        console.log(response)
-    })
-    .catch((err) =>{
-        console.log(err);
-    });
+adminProductos.getProducts();
 
 //Busco los productos por id e imprimo por consola
-adminProductos.getProductById(2)
-    .then((response)=>{
-        console.log(response);
-    })
-    .catch((err) =>{
-        console.log(err);
-    });
+adminProductos.getProductById(2); 
 
 //Actualizacion de productos
-/* adminProductos.updateProduct(1, {title:"Coca Cola"})
-    .then((response)=>{
-        console.log(response)
-    })
-    .catch((err) =>{
-            console.log(err);
-        }); */
+adminProductos.updateProduct(1, {title:"Coca Cola"});
 
 //Eliminar producto
-/* adminProductos.deleteProduct(3)
-    .then((response)=>{
-        console.log(response);
-    })
-    .catch((err) =>{
-        console.log(err);
-    }); */ 
+//adminProductos.deleteProduct(3);
 
 
 
